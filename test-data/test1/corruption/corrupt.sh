@@ -42,33 +42,41 @@ SKIPPED=0
 while IFS= read -r -d '' FILE
 do
 
+    echo "------------------------------------------"
+    echo "Fichier : $FILE"
+
+    # Affiche les droits AVANT toute modification
+    echo "Droits :"
+    ls -l "$FILE"
+
     # Ne jamais modifier corrupt.sh lui-même
     if [ "$FILE" = "$SELF" ]; then
-        echo "IGNORE : $FILE"
-        echo "Raison : script courant"
+        echo "IGNORE : script courant"
         SKIPPED=$((SKIPPED + 1))
+        echo ""
         continue
     fi
 
     # Tronque le fichier à 0 octet
     if : > "$FILE" 2>/dev/null; then
 
-        echo "TRONQUE : $FILE"
+        echo "RESULTAT : TRONQUE"
         SUCCESS=$((SUCCESS + 1))
 
     else
 
-        echo "IGNORE : $FILE"
-        echo "Raison : impossible d'écrire dans le fichier"
+        echo "RESULTAT : IGNORE"
+        echo "Raison   : impossible d'écrire dans le fichier"
         FAILED=$((FAILED + 1))
 
     fi
 
+    echo ""
+
 done < <(find "$TEST_DIR" -type f -print0)
 
-echo ""
 echo "=========================================="
-echo "RESULTAT"
+echo "RESULTAT FINAL"
 echo "=========================================="
 echo "Fichiers tronqués : $SUCCESS"
 echo "Échecs             : $FAILED"
