@@ -8,8 +8,9 @@ permissions:
 
 jobs:
   test:
+
     runs-on: macos-26
-    timeout-minutes: 10
+    timeout-minutes: 20
 
     steps:
 
@@ -18,18 +19,25 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Vérifier les données originales
+
+      - name: Installer les outils de validation
         run: |
-          echo "===== DONNEES ORIGINALES ====="
-          find "$GITHUB_WORKSPACE/test-data" -type f -print
+          python3 -m venv "$GITHUB_WORKSPACE/validator-env"
+          source "$GITHUB_WORKSPACE/validator-env/bin/activate"
+
+          pip install --upgrade pip
+          pip install pillow pypdf
+
+          if ! command -v ffprobe >/dev/null 2>&1; then
+            brew install ffmpeg
+          fi
+
 
       - name: Créer une copie de travail
         run: |
           cp -R "$GITHUB_WORKSPACE/test-data" \
                 "$GITHUB_WORKSPACE/work-data"
 
-          echo "Copie créée."
-          find "$GITHUB_WORKSPACE/work-data" -type f -print
 
       - name: Calculer les hashes AVANT
         run: |
@@ -40,8 +48,8 @@ jobs:
             | xargs -0 shasum -a 256 \
             > "$GITHUB_WORKSPACE/before.sha256"
 
-          echo "===== HASHES AVANT ====="
           cat "$GITHUB_WORKSPACE/before.sha256"
+
 
       - name: Exécuter le script
         run: |
@@ -49,6 +57,7 @@ jobs:
 
           "$GITHUB_WORKSPACE/test.sh" \
             "$GITHUB_WORKSPACE/work-data"
+
 
       - name: Calculer les hashes APRES
         if: always()
@@ -60,27 +69,26 @@ jobs:
             | xargs -0 shasum -a 256 \
             > "$GITHUB_WORKSPACE/after.sha256"
 
-          echo "===== HASHES APRES ====="
           cat "$GITHUB_WORKSPACE/after.sha256"
+
 
       - name: Comparer avant et après
         if: always()
         run: |
-          echo "===== DIFFERENCES ====="
-
           diff -u \
             "$GITHUB_WORKSPACE/before.sha256" \
             "$GITHUB_WORKSPACE/after.sha256" \
             || true
 
-      - name: Informations sur les fichiers après test
+
+      - name: Vérifier intégrité après script
         if: always()
         run: |
-          echo "===== FICHIERS APRES TEST ====="
+          source "$GITHUB_WORKSPACE/validator-env/bin/activate"
 
-          find "$GITHUB_WORKSPACE/work-data" \
-            -type f \
-            -exec file {} \;
+          python3 "$GITHUB_WORKSPACE/check_integrity.py" \
+            "$GITHUB_WORKSPACE/work-data"
+
 
       - name: Sauvegarder les résultats
         if: always()
