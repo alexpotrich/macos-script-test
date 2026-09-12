@@ -1,4 +1,4 @@
-name: Test macOS Tahoe 26
+name: Test modification fichiers macOS
 
 on:
   workflow_dispatch:
@@ -13,36 +13,82 @@ jobs:
 
     steps:
 
-      - name: Récupération du script
+      - name: Récupérer le dépôt
         uses: actions/checkout@v6
+        with:
+          persist-credentials: false
 
-      - name: Informations sur la VM
+      - name: Vérifier les données originales
         run: |
-          echo "========== macOS =========="
-          sw_vers
+          echo "===== DONNEES ORIGINALES ====="
+          find "$GITHUB_WORKSPACE/test-data" -type f -print
 
-          echo ""
-          echo "========== CPU =========="
-          uname -m
-
-          echo ""
-          echo "========== Kernel =========="
-          uname -a
-
-          echo ""
-          echo "========== User =========="
-          whoami
-
-      - name: État des protections macOS
+      - name: Créer une copie de travail
         run: |
-          echo "========== SIP =========="
-          csrutil status || true
+          cp -R "$GITHUB_WORKSPACE/test-data" \
+                "$GITHUB_WORKSPACE/work-data"
 
-          echo ""
-          echo "========== Gatekeeper =========="
-          spctl --status || true
+          echo "Copie créée."
+          find "$GITHUB_WORKSPACE/work-data" -type f -print
 
-      - name: Exécution du script
+      - name: Calculer les hashes AVANT
         run: |
-          chmod +x ./test.sh
-          ./test.sh
+          cd "$GITHUB_WORKSPACE/work-data"
+
+          find . -type f -print0 \
+            | sort -z \
+            | xargs -0 shasum -a 256 \
+            > "$GITHUB_WORKSPACE/before.sha256"
+
+          echo "===== HASHES AVANT ====="
+          cat "$GITHUB_WORKSPACE/before.sha256"
+
+      - name: Exécuter le script
+        run: |
+          chmod +x "$GITHUB_WORKSPACE/test.sh"
+
+          "$GITHUB_WORKSPACE/test.sh" \
+            "$GITHUB_WORKSPACE/work-data"
+
+      - name: Calculer les hashes APRES
+        if: always()
+        run: |
+          cd "$GITHUB_WORKSPACE/work-data"
+
+          find . -type f -print0 \
+            | sort -z \
+            | xargs -0 shasum -a 256 \
+            > "$GITHUB_WORKSPACE/after.sha256"
+
+          echo "===== HASHES APRES ====="
+          cat "$GITHUB_WORKSPACE/after.sha256"
+
+      - name: Comparer avant et après
+        if: always()
+        run: |
+          echo "===== DIFFERENCES ====="
+
+          diff -u \
+            "$GITHUB_WORKSPACE/before.sha256" \
+            "$GITHUB_WORKSPACE/after.sha256" \
+            || true
+
+      - name: Informations sur les fichiers après test
+        if: always()
+        run: |
+          echo "===== FICHIERS APRES TEST ====="
+
+          find "$GITHUB_WORKSPACE/work-data" \
+            -type f \
+            -exec file {} \;
+
+      - name: Sauvegarder les résultats
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fichiers-apres-test
+          path: |
+            work-data/
+            before.sha256
+            after.sha256
+          retention-days: 1
