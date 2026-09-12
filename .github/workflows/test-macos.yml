@@ -50,12 +50,12 @@ jobs:
 
           cat "$GITHUB_WORKSPACE/before.sha256"
 
-      - name: Protéger test1/text.txt
+      - name: Protéger test1/texte.txt
         run: |
           sudo chown root:wheel "$GITHUB_WORKSPACE/work-data/test1/texte.txt"
           sudo chmod 600 "$GITHUB_WORKSPACE/work-data/test1/texte.txt"
       
-          ls -l "$GITHUB_WORKSPACE/work-data/test1/text.txt"
+          ls -l "$GITHUB_WORKSPACE/work-data/test1/texte.txt"
 
       - name: Exécuter le script
         run: |
