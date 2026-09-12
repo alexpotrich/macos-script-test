@@ -1,21 +1,12 @@
 #!/bin/bash
 
-echo "=== TEST MACOS ==="
+TARGET="$1"
 
-echo "Version macOS :"
-sw_vers
+if [ -z "$TARGET" ] || [ ! -d "$TARGET" ]; then
+    echo "Dossier cible invalide."
+    exit 1
+fi
 
-echo ""
-echo "Architecture :"
-uname -m
+echo "Modification d'un fichier de test..."
 
-echo ""
-echo "Utilisateur :"
-whoami
-
-echo ""
-echo "Répertoire actuel :"
-pwd
-
-echo ""
-echo "Test terminé."
+echo "MODIFICATION TEST" >> "$TARGET/test1/texte.txt"
