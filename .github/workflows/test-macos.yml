@@ -52,8 +52,8 @@ jobs:
 
       - name: Protéger test1/text.txt
         run: |
-          sudo chown root:wheel "$GITHUB_WORKSPACE/work-data/test1/text.txt"
-          sudo chmod 600 "$GITHUB_WORKSPACE/work-data/test1/text.txt"
+          sudo chown root:wheel "$GITHUB_WORKSPACE/work-data/test1/texte.txt"
+          sudo chmod 600 "$GITHUB_WORKSPACE/work-data/test1/texte.txt"
       
           ls -l "$GITHUB_WORKSPACE/work-data/test1/text.txt"
 
