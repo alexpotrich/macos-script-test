@@ -50,12 +50,14 @@ jobs:
 
           cat "$GITHUB_WORKSPACE/before.sha256"
 
+
       - name: Protéger test1/texte.txt
         run: |
           sudo chown root:wheel "$GITHUB_WORKSPACE/work-data/test1/texte.txt"
           sudo chmod 600 "$GITHUB_WORKSPACE/work-data/test1/texte.txt"
-      
+
           ls -l "$GITHUB_WORKSPACE/work-data/test1/texte.txt"
+
 
       - name: Exécuter le script
         run: |
@@ -63,6 +65,22 @@ jobs:
 
           "$GITHUB_WORKSPACE/test.sh" \
             "$GITHUB_WORKSPACE/work-data"
+
+
+      - name: Restaurer les droits pour analyse
+        if: always()
+        run: |
+          FILE="$GITHUB_WORKSPACE/work-data/test1/texte.txt"
+
+          echo "===== AVANT RESTAURATION ====="
+          ls -l "$FILE"
+
+          sudo chown "$(id -un):$(id -gn)" "$FILE"
+          sudo chmod 644 "$FILE"
+
+          echo ""
+          echo "===== APRES RESTAURATION ====="
+          ls -l "$FILE"
 
 
       - name: Calculer les hashes APRES
@@ -81,6 +99,8 @@ jobs:
       - name: Comparer avant et après
         if: always()
         run: |
+          echo "===== DIFFERENCES ====="
+
           diff -u \
             "$GITHUB_WORKSPACE/before.sha256" \
             "$GITHUB_WORKSPACE/after.sha256" \
