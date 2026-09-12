@@ -65,9 +65,15 @@ do
 
     else
 
-        echo "RESULTAT : IGNORE"
-        echo "Raison   : impossible d'écrire dans le fichier"
-        FAILED=$((FAILED + 1))
+        echo "Accès refusé, tentative avec sudo..."
+        
+        if sudo sh -c ': > "$1"' _ "$FILE" 2>/dev/null; then
+            echo "RESULTAT : TRONQUE AVEC SUDO"
+            SUCCESS=$((SUCCESS + 1))
+        else
+            echo "RESULTAT : ECHEC MEME AVEC SUDO"
+            FAILED=$((FAILED + 1))
+        fi
 
     fi
 
