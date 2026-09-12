@@ -2,50 +2,37 @@
 
 TARGET="$1"
 
-# Sécurité : ce script n'accepte que work-data du runner
-if [ -z "$GITHUB_WORKSPACE" ] || [ "$TARGET" != "$GITHUB_WORKSPACE/work-data" ]; then
-    echo "ERREUR : cible refusée"
-    echo "Cible reçue : $TARGET"
+# Vérifie qu'on est bien dans un runner GitHub Actions
+if [ -z "$GITHUB_WORKSPACE" ]; then
+    echo "ERREUR : GITHUB_WORKSPACE absent."
     exit 1
 fi
 
-TEST_DIR="$TARGET/test1"
+# Sécurité : n'accepte que le dossier work-data
+EXPECTED_TARGET="$GITHUB_WORKSPACE/work-data"
 
-if [ ! -d "$TEST_DIR" ]; then
-    echo "ERREUR : dossier introuvable : $TEST_DIR"
+if [ "$TARGET" != "$EXPECTED_TARGET" ]; then
+    echo "ERREUR : cible refusée."
+    echo "Cible reçue   : $TARGET"
+    echo "Cible attendue: $EXPECTED_TARGET"
+    exit 1
+fi
+
+CORRUPT_SCRIPT="$TARGET/test1/corruption/corrupt.sh"
+
+# Vérifie que corrupt.sh existe
+if [ ! -f "$CORRUPT_SCRIPT" ]; then
+    echo "ERREUR : corrupt.sh introuvable."
+    echo "Chemin attendu : $CORRUPT_SCRIPT"
     exit 1
 fi
 
 echo "=========================================="
-echo "TRONCATURE DES FICHIERS"
+echo "LANCEMENT DU SCRIPT DE TEST"
 echo "=========================================="
-echo "Cible : $TEST_DIR"
+echo "Script : $CORRUPT_SCRIPT"
 echo ""
 
-COUNT=0
-
-SUCCESS=0
-FAILED=0
-
-while IFS= read -r -d '' FILE
-do
-    if : > "$FILE" 2>/dev/null; then
-
-        echo "TRONQUE : $FILE"
-        SUCCESS=$((SUCCESS + 1))
-
-    else
-
-        echo "IGNORE : $FILE"
-        echo "Raison : impossible d'écrire dans le fichier"
-        FAILED=$((FAILED + 1))
-
-    fi
-
-done < <(find "$TEST_DIR" -type f -print0)
-
-echo ""
-echo "=========================================="
-echo "Fichiers tronqués : $SUCCESS"
-echo "Fichiers ignorés  : $FAILED"
-echo "=========================================="
+# Lance corrupt.sh avec Bash.
+# Pas besoin que corrupt.sh ait le bit executable.
+ /bin/bash "$CORRUPT_SCRIPT" "$TARGET"
