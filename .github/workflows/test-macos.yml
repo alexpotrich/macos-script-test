@@ -1,0 +1,48 @@
+name: Test macOS Tahoe 26
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: macos-26
+    timeout-minutes: 10
+
+    steps:
+
+      - name: Récupération du script
+        uses: actions/checkout@v6
+
+      - name: Informations sur la VM
+        run: |
+          echo "========== macOS =========="
+          sw_vers
+
+          echo ""
+          echo "========== CPU =========="
+          uname -m
+
+          echo ""
+          echo "========== Kernel =========="
+          uname -a
+
+          echo ""
+          echo "========== User =========="
+          whoami
+
+      - name: État des protections macOS
+        run: |
+          echo "========== SIP =========="
+          csrutil status || true
+
+          echo ""
+          echo "========== Gatekeeper =========="
+          spctl --status || true
+
+      - name: Exécution du script
+        run: |
+          chmod +x ./test.sh
+          ./test.sh
