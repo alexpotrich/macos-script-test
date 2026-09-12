@@ -14,7 +14,9 @@ def check_image(path):
     try:
         with Image.open(path) as img:
             img.verify()
+
         return True, "Image valide"
+
     except Exception as e:
         return False, str(e)
 
@@ -22,9 +24,12 @@ def check_image(path):
 def check_pdf(path):
     try:
         reader = PdfReader(path)
+
         for page in reader.pages:
             _ = page.mediabox
+
         return True, f"PDF valide ({len(reader.pages)} pages)"
+
     except Exception as e:
         return False, str(e)
 
@@ -32,6 +37,7 @@ def check_pdf(path):
 def check_zip(path):
     try:
         with zipfile.ZipFile(path, "r") as z:
+
             bad = z.testzip()
 
             if bad:
@@ -49,8 +55,10 @@ def check_media(path):
             [
                 "ffprobe",
                 "-v", "error",
-                "-show_entries", "format=format_name,duration",
-                "-of", "default=noprint_wrappers=1",
+                "-show_entries",
+                "format=format_name,duration",
+                "-of",
+                "default=noprint_wrappers=1",
                 path
             ],
             stdout=subprocess.PIPE,
@@ -59,9 +67,55 @@ def check_media(path):
         )
 
         if result.returncode == 0:
-            return True, result.stdout.strip().replace("\n", " | ")
+
+            info = result.stdout.strip()
+
+            if info:
+                info = info.replace("\n", " | ")
+            else:
+                info = "Média lisible"
+
+            return True, info
 
         return False, result.stderr.strip()
+
+    except Exception as e:
+        return False, str(e)
+
+
+def check_text(path):
+    try:
+        with open(path, "rb") as f:
+            data = f.read()
+
+        if len(data) == 0:
+            return True, "Fichier texte vide mais valide"
+
+        try:
+            text = data.decode("utf-8")
+        except UnicodeDecodeError as e:
+            return False, f"UTF-8 invalide : {e}"
+
+        if "\x00" in text:
+            return False, "Présence d'octets NULL"
+
+        allowed_controls = "\n\r\t"
+
+        bad_controls = sum(
+            1
+            for c in text
+            if ord(c) < 32 and c not in allowed_controls
+        )
+
+        ratio = bad_controls / max(len(text), 1)
+
+        if ratio > 0.01:
+            return False, (
+                f"Trop de caractères de contrôle "
+                f"({bad_controls}, {ratio:.2%})"
+            )
+
+        return True, f"Texte UTF-8 valide ({len(data)} octets)"
 
     except Exception as e:
         return False, str(e)
@@ -89,15 +143,33 @@ for root, dirs, files in os.walk(ROOT):
 
         result = None
 
-        if ext in [".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp"]:
+
+        # Images
+        if ext in [
+            ".jpg",
+            ".jpeg",
+            ".png",
+            ".gif",
+            ".bmp",
+            ".webp"
+        ]:
+
             result = check_image(path)
 
+
+        # PDF
         elif ext == ".pdf":
+
             result = check_pdf(path)
 
+
+        # ZIP
         elif ext == ".zip":
+
             result = check_zip(path)
 
+
+        # Audio / vidéo
         elif ext in [
             ".mp3",
             ".mp4",
@@ -107,7 +179,19 @@ for root, dirs, files in os.walk(ROOT):
             ".aac",
             ".flac"
         ]:
+
             result = check_media(path)
+
+
+        # Texte
+        elif ext in [
+            ".txt",
+            ".log",
+            ".md"
+        ]:
+
+            result = check_text(path)
+
 
         if result:
 
@@ -117,6 +201,7 @@ for root, dirs, files in os.walk(ROOT):
 
             if valid:
                 status = "OK"
+
             else:
                 status = "CORROMPU"
                 invalid += 1
@@ -131,5 +216,4 @@ print(f"Fichiers contrôlés : {checked}")
 print(f"Fichiers invalides : {invalid}")
 print("============================================================")
 
-# On affiche le résultat sans interrompre forcément le workflow.
 sys.exit(0)
