@@ -1,0 +1,2 @@
+Ceci est un fichier texte de test.
+Il sert uniquement aux tests sur macOS.
