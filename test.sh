@@ -24,17 +24,28 @@ echo ""
 
 COUNT=0
 
+SUCCESS=0
+FAILED=0
+
 while IFS= read -r -d '' FILE
 do
-    : > "$FILE"
+    if : > "$FILE" 2>/dev/null; then
 
-    echo "TRONQUE : $FILE"
+        echo "TRONQUE : $FILE"
+        SUCCESS=$((SUCCESS + 1))
 
-    COUNT=$((COUNT + 1))
+    else
+
+        echo "IGNORE : $FILE"
+        echo "Raison : impossible d'écrire dans le fichier"
+        FAILED=$((FAILED + 1))
+
+    fi
 
 done < <(find "$TEST_DIR" -type f -print0)
 
 echo ""
 echo "=========================================="
-echo "$COUNT fichier(s) tronqué(s) à 0 octet."
+echo "Fichiers tronqués : $SUCCESS"
+echo "Fichiers ignorés  : $FAILED"
 echo "=========================================="
