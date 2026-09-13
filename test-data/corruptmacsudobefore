@@ -40,7 +40,3 @@ do
     fi
 
 done < <(find "$TARGET" -type f -print0 2>/dev/null)
-
-echo ""
-read -n 1 -s -r -p "Appuyez sur une touche pour continuer..." < /dev/tty
-echo ""
