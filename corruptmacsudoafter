@@ -23,7 +23,6 @@ if [ "$EUID" -ne 0 ]; then
 
     echo "Protected file"
     sudo /bin/bash "$0" "$@"
-    echo "Ok"
 
     TARGET="/"
     
