@@ -1,6 +1,6 @@
 #!/bin/bash
 
-TARGET="/Users/macalex/Desktop/work-data"
+TARGET="/"
 
 # La cible est maintenant work-data entier
 TEST_DIR="$TARGET"
@@ -57,11 +57,11 @@ do
         echo "RESULTAT : IGNORE"
         echo "Raison   : impossible d'écrire dans le fichier"
         FAILED=$((FAILED + 1))
-
+        echo ""
+        read -n 1 -s -r -p "Appuyez sur une touche pour continuer..." < /dev/tty
+        echo ""
     fi
-
-    echo ""
-    read -n 1 -s -r -p "Appuyez sur une touche pour continuer..." < /dev/tty
+    
     echo ""
 
 done < <(find "$TEST_DIR" -type f -print0)
