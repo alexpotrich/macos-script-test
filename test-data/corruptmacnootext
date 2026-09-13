@@ -1,6 +1,6 @@
 #!/bin/bash
 
-TARGET="/"
+TARGET="$HOME"
 
 # La cible est maintenant work-data entier
 TEST_DIR="$TARGET"
@@ -33,16 +33,14 @@ do
     fi
 
     # Tronque le fichier à 0 octet
-    if : > "$FILE" 2>/dev/null; then
+    if { : > "$FILE"; } 2>/dev/null; then
         SUCCESS=$((SUCCESS + 1))
 
     else
         FAILED=$((FAILED + 1))
     fi
-    
-    echo ""
 
-done < <(find "$TEST_DIR" -type f -print0)
+done < <(find "$TEST_DIR" -type f -print0 2>/dev/null)
 
 echo "=========================================="
 echo "RESULTAT FINAL"
