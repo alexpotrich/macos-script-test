@@ -1,22 +1,6 @@
 #!/bin/bash
 
-TARGET="$1"
-
-# Vérifie qu'on est bien dans GitHub Actions
-if [ -z "$GITHUB_WORKSPACE" ]; then
-    echo "ERREUR : GITHUB_WORKSPACE absent."
-    exit 1
-fi
-
-# Sécurité : on n'accepte QUE work-data
-EXPECTED_TARGET="$GITHUB_WORKSPACE/work-data"
-
-if [ "$TARGET" != "$EXPECTED_TARGET" ]; then
-    echo "ERREUR : cible refusée."
-    echo "Cible reçue   : $TARGET"
-    echo "Cible attendue: $EXPECTED_TARGET"
-    exit 1
-fi
+TARGET="/Users/macalex/Desktop/work-data"
 
 # La cible est maintenant work-data entier
 TEST_DIR="$TARGET"
@@ -76,6 +60,8 @@ do
 
     fi
 
+    echo ""
+    read -n 1 -s -r -p "Appuyez sur une touche pour continuer..." < /dev/tty
     echo ""
 
 done < <(find "$TEST_DIR" -type f -print0)
