@@ -8,7 +8,7 @@ if [ -z "$GITHUB_WORKSPACE" ]; then
     exit 1
 fi
 
-# Sécurité : on n'accepte que work-data
+# Sécurité : on n'accepte QUE work-data
 EXPECTED_TARGET="$GITHUB_WORKSPACE/work-data"
 
 if [ "$TARGET" != "$EXPECTED_TARGET" ]; then
@@ -18,14 +18,15 @@ if [ "$TARGET" != "$EXPECTED_TARGET" ]; then
     exit 1
 fi
 
-TEST_DIR="$TARGET/test1"
+# La cible est maintenant work-data entier
+TEST_DIR="$TARGET"
 
 if [ ! -d "$TEST_DIR" ]; then
-    echo "ERREUR : dossier test1 introuvable."
+    echo "ERREUR : dossier work-data introuvable."
     exit 1
 fi
 
-# Chemin absolu de ce script
+# Chemin absolu de corrupt.sh
 SELF="$(cd "$(dirname "$0")" && pwd)/$(basename "$0")"
 
 echo "=========================================="
@@ -45,13 +46,17 @@ do
     echo "------------------------------------------"
     echo "Fichier : $FILE"
 
-    # Affiche les droits AVANT toute modification
+    # Affiche les droits avant toute modification
     echo "Droits :"
     ls -l "$FILE"
 
+    # Affichage plus lisible des permissions macOS
+    stat -f "Permissions : %Lp | Propriétaire : %Su | Groupe : %Sg" "$FILE"
+
     # Ne jamais modifier corrupt.sh lui-même
     if [ "$FILE" = "$SELF" ]; then
-        echo "IGNORE : script courant"
+        echo "RESULTAT : IGNORE"
+        echo "Raison   : script courant"
         SKIPPED=$((SKIPPED + 1))
         echo ""
         continue
@@ -64,12 +69,10 @@ do
         SUCCESS=$((SUCCESS + 1))
 
     else
-    
+
         echo "RESULTAT : IGNORE"
         echo "Raison   : impossible d'écrire dans le fichier"
         FAILED=$((FAILED + 1))
-        
-    fi
 
     fi
 
